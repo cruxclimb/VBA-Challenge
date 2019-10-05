@@ -1,0 +1,203 @@
+Sub VBAWallstreetCode()
+
+
+    'Start loop for worksheet
+    For Each ws In Worksheets
+        
+    '----------------------------------------------------------------------------------------
+        
+        'Call out variables
+        Dim OpenPrice, ClosePrice, TotalStock, YearlyChange, PercentChange, MinPercent, MaxPercent, GreatestVolume As Double
+        Dim CurrentTicker, PreviousTicker As String
+        Dim i, StartLoopRow, EndLoopRow, RowOffset As Double
+        Dim PercentRange, VolumeRange, Counter As Double
+        
+        TotalStock = 0
+        
+        
+        'Establish begin and end of loop range
+        'Hardcoding begining of loop
+        StartLoopRow = 2
+        
+        
+        
+        'Select starting point
+        Range("A" & StartLoopRow).Select
+        Range(Selection, Selection.End(xlDown)).Select
+        EndLoopRow = Selection.Rows.Count + StartLoopRow
+        
+        
+        
+        'Set beginning value of counter to -1 to account for column titles
+        Counter = -1
+        
+        
+        
+        'Create a place to display the data and what row it will start at
+        Dim summary_table_row As Integer
+        summary_table_row = 2
+        
+    
+        'Give the column headers a name for the output table in the worksheet
+        ws.Cells(1, 9).Value = "Ticker"
+        ws.Cells(1, 10).Value = "Yearly Change"
+        ws.Cells(1, 11).Value = "Percent Change"
+        ws.Cells(1, 12).Value = "Total Stock Volume"
+        
+        'create a second table to export to new table on worksheet
+        ws.Cells(2, 15).Value = "Greatest % Increase"
+        ws.Cells(3, 15).Value = "Greatest % Decrease"
+        ws.Cells(4, 15).Value = "Greatest Total Volume"
+        ws.Cells(1, 16).Value = "Value"
+        
+    '----------------------------------------------------------------------------------------
+        
+        ' BEGIN LOOP FOR THE DATA TABLE WITHIN THE WORKSHEET:
+        
+        
+        For i = StartLoopRow To EndLoopRow
+        
+            'Establish the first ticker
+            Counter = Counter + 1
+            RowOffset = Counter * -1
+            CurrentTicker = ws.Range("A" & i)
+            If i = StartLoopRow Then
+                PreviousTicker = CurrentTicker
+            Else
+                PreviousTicker = ws.Range("A" & i).Offset(-1, 0)
+            End If
+            
+    '----------------------------------------------------------------------------------------
+            
+            'Establish what happens if the ticker changes:
+            
+            If CurrentTicker <> PreviousTicker Then
+                OpenPrice = ws.Range("C" & i).Offset(RowOffset, 0)
+                ClosePrice = ws.Range("F" & i).Offset(-1, 0)
+                
+                
+                'Change the outputs around. if the ticker changes grab new open close. else perform calculations
+    '----------------------------------------------------------------------------------------
+                
+                'PERFORM CALCULATIONS:
+    
+               
+                'Formula for yearly change
+                'If then to account for open prices being 0
+                YearlyChange = ClosePrice - OpenPrice
+                    
+                'Formula for percent change
+                'If then to account for open prices being 0
+                            
+                If OpenPrice = 0 Then
+                    PercentChange = (ClosePrice - OpenPrice) / 1
+
+                    
+                Else
+                    PercentChange = (ClosePrice - OpenPrice) / OpenPrice
+                   
+                End If
+  
+                
+                'The total stock volume of the stock
+                TotalStock = TotalStock + ws.Cells(i, 7).Value
+                
+                
+    '----------------------------------------------------------------------------------------
+                
+                'BUILD TABLE:
+                
+                
+                'Print the ticker in the summary table
+                ws.Range("I" & summary_table_row).Value = PreviousTicker
+                
+                
+                
+                'Print the yearly change in the summary table
+                ws.Range("J" & summary_table_row).Value = YearlyChange
+                
+                    'Format positive yearly change green
+        
+                    If YearlyChange < 0 Then
+                    
+                        ws.Range("J" & summary_table_row).Interior.ColorIndex = 3
+                        
+                    'Format negative yearly change red
+                    Else
+                        ws.Range("J" & summary_table_row).Interior.ColorIndex = 4
+                    
+                    End If
+                
+                'Print the percent change in the summary table
+                ws.Range("K" & summary_table_row).Value = PercentChange
+
+                
+                'Print the stock volume in the summary table
+                ws.Range("L" & summary_table_row).Value = TotalStock
+                
+                
+                
+                'Add one to the summary table row
+                summary_table_row = summary_table_row + 1
+                
+    '----------------------------------------------------------------------------------------
+                
+                                'CHALLENGE SECTION:
+                        
+                                'Find the Min and Max percent in the range
+                                
+                                'Greatest Increase
+
+                                MaxPercent = Application.WorksheetFunction.Max(ws.Range("K:K"))
+                                
+                                        'Print the MaxPercent change in the table
+                                        ws.Range("P2").Value = MaxPercent
+
+                                'Greatest Decrease
+
+                                MinPercent = Application.WorksheetFunction.Min(ws.Range("K:K"))
+                                                                        
+                                        'Print the MinPercent in the table
+                                        ws.Range("P3").Value = MinPercent
+
+                                'Greatest Volume
+                                GreatestVolume = Application.WorksheetFunction.Max(ws.Range("L:L"))
+                                
+                                        
+                                        'Print the MinPercent in the table
+                                        ws.Range("P4").Value = GreatestVolume
+                               
+                
+                
+                'RESET :
+                     
+                'Reset Counter to 0
+                Counter = 0
+              
+                'Reset the total stock
+                TotalStock = 0
+                
+                
+                
+            Else
+                
+                'The total stock volume of the stock
+                TotalStock = TotalStock + ws.Cells(i, 7).Value
+            
+            End If
+
+        
+        Next i
+        
+        
+            
+            'Format column to percent
+            ws.Range("K:K").NumberFormat = "0.00%"
+            ws.Range("P2").NumberFormat = "0.00%"
+            ws.Range("P3").NumberFormat = "0.00%"
+    
+    Next ws
+    
+
+End Sub
+
